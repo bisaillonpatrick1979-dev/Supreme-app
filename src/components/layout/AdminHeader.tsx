@@ -1,7 +1,7 @@
 'use client'
 
-import { Bell, Search } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Search } from 'lucide-react'
+import { NotificationBell } from '@/components/ui/NotificationBell'
 import { useAuth } from '@/context/AuthContext'
 import { getInitials } from '@/lib/utils/format'
 
@@ -36,11 +36,7 @@ export function AdminHeader({ title, subtitle }: AdminHeaderProps) {
         </div>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full"
-            style={{ backgroundColor: 'rgb(var(--color-danger))' }} />
-        </Button>
+        <NotificationBell />
 
         {/* Avatar */}
         <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"

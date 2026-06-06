@@ -8,8 +8,9 @@ import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Select, Textarea } from '@/components/ui/Input'
-import { Plus, Users, Building2, UserCheck } from 'lucide-react'
+import { Plus, Users, Building2, UserCheck, Key } from 'lucide-react'
 import { toast } from 'sonner'
+import Link from 'next/link'
 import { formatCurrency, formatDate, formatPhone } from '@/lib/utils/format'
 import type { Employee, Subcontractor } from '@/types/database'
 
@@ -125,6 +126,14 @@ export default function HRPage() {
     { key: 'hire_date', header: 'Embauche', render: (e: Employee) => <span className="text-xs">{formatDate(e.hire_date)}</span> },
     { key: 'is_active', header: 'Statut', render: (e: Employee) => (
       <Badge variant={e.is_active ? 'success' : 'danger'}>{e.is_active ? 'Actif' : 'Inactif'}</Badge>
+    )},
+    { key: 'pin', header: 'PIN', render: (e: Employee) => (
+      <Link href={`/admin/hr/pin/${e.id}`}
+        className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg transition-colors"
+        style={{ color: 'rgb(var(--color-primary))', background: 'rgb(var(--color-primary-muted))' }}>
+        <Key className="w-3 h-3" />
+        {e.pin_hash ? 'Modifier PIN' : 'Créer PIN'}
+      </Link>
     )},
   ]
 

@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/Button'
 import { ProjectStatusBadge, TaskStatusBadge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Select, Textarea } from '@/components/ui/Input'
-import { CheckCircle, Circle, Plus, MapPin, Calendar, DollarSign, Camera, AlertTriangle } from 'lucide-react'
+import { CheckCircle, Circle, Plus, MapPin, Calendar, DollarSign, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
+import { PhotoUpload } from '@/components/upload/PhotoUpload'
 import type { Project, Client, ProjectTask } from '@/types/database'
 
 export default function ProjectDetailPage() {
@@ -213,10 +214,12 @@ export default function ProjectDetailPage() {
                 <DollarSign className="w-4 h-4" />
                 {canInvoice ? 'Créer une facture' : 'Facture bloquée'}
               </Button>
-              <Button variant="secondary" className="w-full justify-start gap-2">
-                <Camera className="w-4 h-4" />
-                Photos du chantier
-              </Button>
+            </div>
+
+            {/* Photos */}
+            <div className="hm-card">
+              <h3 className="font-semibold mb-3" style={{ color: 'rgb(var(--color-text))' }}>Photos du chantier</h3>
+              <PhotoUpload projectId={id} />
             </div>
 
             {/* Client info */}
