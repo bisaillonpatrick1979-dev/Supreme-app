@@ -6,7 +6,7 @@ import { AdminHeader } from '@/components/layout/AdminHeader'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { DataTable } from '@/components/ui/DataTable'
-import { CheckCircle, Clock, Filter } from 'lucide-react'
+import { CheckCircle, Filter, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency, formatDate, formatHours, getInitials } from '@/lib/utils/format'
 import type { WorkSession, Employee } from '@/types/database'
@@ -71,6 +71,27 @@ export default function HoursAdminPage() {
     if (filterApproved === 'approved') return s.is_approved
     return true
   })
+
+  const exportCSV = () => {
+    const headers = ['Employé', 'Date', 'Heures reg.', 'Heures supp.', 'Total heures', 'Salaire brut', 'Approuvé']
+    const rows = filtered.map(s => [
+      `${s.employee?.first_name ?? ''} ${s.employee?.last_name ?? ''}`.trim(),
+      s.date,
+      s.hours_regular.toFixed(2),
+      s.hours_overtime.toFixed(2),
+      s.hours_total.toFixed(2),
+      s.gross_pay.toFixed(2),
+      s.is_approved ? 'Oui' : 'Non',
+    ])
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `heures_${dateFrom}_${dateTo}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   // Summary stats
   const totalHours = filtered.reduce((s, ws) => s + ws.hours_total, 0)
@@ -168,6 +189,9 @@ export default function HoursAdminPage() {
                 <CheckCircle className="w-3 h-3" /> Approuver tout ({pendingCount})
               </Button>
             )}
+            <Button variant="secondary" size="sm" onClick={exportCSV}>
+              <Download className="w-3 h-3" /> Exporter CSV
+            </Button>
           </div>
         </div>
 

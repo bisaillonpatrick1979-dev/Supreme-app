@@ -2,8 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { AdminHeader } from '@/components/layout/AdminHeader'
 import { StatCard } from '@/components/ui/StatCard'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
-import { Users, HardHat, FileText, DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
+import { Users, HardHat, DollarSign, AlertTriangle, Clock } from 'lucide-react'
 import { ProjectStatusBadge, InvoiceStatusBadge } from '@/components/ui/Badge'
+import { LivePunchFeed } from '@/components/dashboard/LivePunchFeed'
 import Link from 'next/link'
 
 export default async function AdminDashboardPage() {
@@ -16,7 +17,6 @@ export default async function AdminDashboardPage() {
     { data: activeProjects },
     { data: recentInvoices },
     { data: pendingSTInvoices },
-    { data: todayPunches },
   ] = await Promise.all([
     supabase.from('clients').select('*', { count: 'exact', head: true }),
     supabase.from('projects').select('*', { count: 'exact', head: true }).neq('status', 'cancelled'),
@@ -27,10 +27,6 @@ export default async function AdminDashboardPage() {
       .in('status', ['pending', 'overdue']).order('issue_date', { ascending: false }).limit(5),
     supabase.from('st_invoices').select('*, subcontractor:subcontractors(company_name)')
       .eq('status', 'pending').limit(5),
-    supabase.from('punch_records').select('*, employee:employees(first_name,last_name)')
-      .eq('punch_type', 'in')
-      .gte('punched_at', new Date().toISOString().split('T')[0])
-      .limit(10),
   ])
 
   // Revenue stats
@@ -133,31 +129,9 @@ export default async function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Today punches */}
+            {/* Live punch feed */}
             <div className="hm-card">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-sm" style={{ color: 'rgb(var(--color-text))' }}>
-                  {"Pointages d'aujourd'hui"}
-                </h3>
-                <span className="hm-badge hm-badge-success">
-                  {todayPunches?.length ?? 0} actifs
-                </span>
-              </div>
-              <div className="space-y-1.5">
-                {todayPunches?.map(p => (
-                  <div key={p.id} className="flex items-center gap-2 text-xs">
-                    <div className="w-2 h-2 rounded-full status-dot status-dot-active" />
-                    <span style={{ color: 'rgb(var(--color-text))' }}>
-                      {p.employee?.first_name} {p.employee?.last_name}
-                    </span>
-                  </div>
-                ))}
-                {!todayPunches?.length && (
-                  <p className="text-xs" style={{ color: 'rgb(var(--color-text-muted))' }}>
-                    {"Aucun pointage aujourd'hui"}
-                  </p>
-                )}
-              </div>
+              <LivePunchFeed />
             </div>
           </div>
         </div>

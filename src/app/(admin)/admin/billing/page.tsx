@@ -8,7 +8,8 @@ import { DataTable } from '@/components/ui/DataTable'
 import { InvoiceStatusBadge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Select, Textarea } from '@/components/ui/Input'
-import { Plus, DollarSign, Link as LinkIcon, FileText } from 'lucide-react'
+import { Plus, Link as LinkIcon, Eye } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { calculateTaxes } from '@/lib/utils/payroll'
@@ -157,6 +158,9 @@ export default function BillingPage() {
     { key: 'issue_date', header: 'Date', render: (inv: Invoice) => <span className="text-xs">{formatDate(inv.issue_date)}</span> },
     { key: 'actions', header: '', render: (inv: Invoice & { client: Client }) => (
       <div className="flex gap-1">
+        <Link href={`/admin/billing/${inv.id}`}>
+          <Button variant="ghost" size="sm"><Eye className="w-3 h-3" /></Button>
+        </Link>
         {!inv.stripe_payment_link && inv.status !== 'paid' && (
           <Button variant="ghost" size="sm" onClick={(e) => {
             e.stopPropagation()

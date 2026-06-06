@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { AdminHeader } from '@/components/layout/AdminHeader'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { ArrowLeft, Download, Send, FileCheck, FileX, Printer } from 'lucide-react'
+import { ArrowLeft, Send, FileCheck, FileX, Printer, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import type { Quote, Client, Project, QuoteLineItem, QuoteStatus } from '@/types/database'
@@ -79,6 +79,40 @@ export default function QuoteDetailPage() {
 
   const printQuote = () => window.print()
 
+  const downloadPDF = async () => {
+    if (!quote) return
+    const { generatePDF } = await import('@/lib/pdf/generate')
+    const clientName = quote.client.company_name ?? `${quote.client.first_name} ${quote.client.last_name}`
+    generatePDF({
+      type: 'quote',
+      number: quote.quote_number,
+      issue_date: quote.issue_date,
+      expiry_date: quote.expiry_date,
+      client: {
+        name: clientName,
+        address: quote.client.address,
+        city: quote.client.city,
+        province: quote.client.province,
+        email: quote.client.email,
+        phone: quote.client.phone,
+      },
+      project: (quote.project as any)?.name ?? null,
+      items: (quote.line_items ?? []).map(li => ({
+        description: li.description,
+        quantity: li.quantity,
+        unit: li.unit,
+        unit_price: li.unit_price,
+        total: li.total,
+      })),
+      subtotal: quote.subtotal,
+      tax_gst: quote.tax_gst,
+      tax_qst: quote.tax_qst,
+      total: quote.total,
+      notes: quote.notes,
+      terms: quote.terms,
+    })
+  }
+
   if (loading) return <div className="hm-content"><div className="hm-skeleton h-96" /></div>
   if (!quote) return <div className="hm-content"><p>Devis non trouvé</p></div>
 
@@ -115,7 +149,10 @@ export default function QuoteDetailPage() {
               </>
             )}
             <Button variant="secondary" onClick={printQuote}>
-              <Printer className="w-4 h-4" /> Imprimer / PDF
+              <Printer className="w-4 h-4" /> Imprimer
+            </Button>
+            <Button variant="secondary" onClick={downloadPDF}>
+              <Download className="w-4 h-4" /> PDF
             </Button>
           </div>
         </div>
