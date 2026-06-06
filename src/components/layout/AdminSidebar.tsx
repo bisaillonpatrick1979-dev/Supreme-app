@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, FileText, HardHat, UserCog,
   BarChart3, Package, Boxes, LogOut, Sun, Moon,
-  ChevronRight
+  ChevronRight, ClipboardList, Clock
 } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import { useAuth } from '@/context/AuthContext'
@@ -14,9 +14,19 @@ import { cn } from '@/lib/utils/format'
 const navItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/crm', icon: Users, label: 'CRM Clients' },
-  { href: '/admin/billing', icon: FileText, label: 'Facturation' },
+  {
+    href: '/admin/billing', icon: FileText, label: 'Facturation',
+    children: [
+      { href: '/admin/billing/quotes', icon: ClipboardList, label: 'Devis' },
+    ],
+  },
   { href: '/admin/projects', icon: HardHat, label: 'Chantiers' },
-  { href: '/admin/hr', icon: UserCog, label: 'Ressources Humaines' },
+  {
+    href: '/admin/hr', icon: UserCog, label: 'Ressources Humaines',
+    children: [
+      { href: '/admin/hr/hours', icon: Clock, label: 'Heures' },
+    ],
+  },
   { href: '/admin/accounting', icon: BarChart3, label: 'Comptabilité' },
   { href: '/admin/catalog', icon: Package, label: 'Catalogue' },
   { href: '/admin/inventory', icon: Boxes, label: 'Inventaire' },
@@ -49,15 +59,29 @@ export function AdminSidebar() {
         {navItems.map(item => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn('hm-nav-item', active && 'hm-nav-item-active')}
-            >
-              <item.icon className="w-4 h-4 shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              {active && <ChevronRight className="w-3 h-3 opacity-50" />}
-            </Link>
+            <div key={item.href}>
+              <Link
+                href={item.href}
+                className={cn('hm-nav-item', active && 'hm-nav-item-active')}
+              >
+                <item.icon className="w-4 h-4 shrink-0" />
+                <span className="flex-1">{item.label}</span>
+                {active && <ChevronRight className="w-3 h-3 opacity-50" />}
+              </Link>
+              {active && item.children?.map(child => {
+                const childActive = pathname === child.href || pathname.startsWith(child.href + '/')
+                return (
+                  <Link
+                    key={child.href}
+                    href={child.href}
+                    className={cn('hm-nav-item pl-9', childActive && 'hm-nav-item-active')}
+                  >
+                    <child.icon className="w-3 h-3 shrink-0" />
+                    <span className="flex-1 text-xs">{child.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
           )
         })}
       </nav>
