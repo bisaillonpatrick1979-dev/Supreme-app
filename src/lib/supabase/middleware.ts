@@ -1,13 +1,37 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const PUBLIC_ROUTES = [
+  '/login',
+  '/employee-pin',
+  '/api/auth',
+  '/api/stripe',
+  '/api/punch',
+  '/payment',
+  '/_next',
+  '/favicon',
+]
+
 export async function updateSession(request: NextRequest) {
+  const path = request.nextUrl.pathname
+  const isPublicRoute = PUBLIC_ROUTES.some(r => path.startsWith(r))
+
+  // Skip Supabase entirely for public routes to avoid any boot-time failures
+  if (isPublicRoute) return NextResponse.next({ request })
+
+  // Guard: if env vars aren't configured, redirect to login instead of crashing
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseKey) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll()
@@ -20,18 +44,17 @@ export async function updateSession(request: NextRequest) {
           )
         },
       },
+    })
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
     }
-  )
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  const path = request.nextUrl.pathname
-
-  // Public routes that don't require auth
-  const publicRoutes = ['/login', '/employee-pin', '/api/auth']
-  const isPublicRoute = publicRoutes.some(r => path.startsWith(r))
-
-  if (!user && !isPublicRoute) {
+  } catch {
+    // If Supabase is unreachable, redirect to login rather than 500
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
