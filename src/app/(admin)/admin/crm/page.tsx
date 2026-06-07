@@ -8,7 +8,8 @@ import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Select, Textarea } from '@/components/ui/Input'
-import { Plus, Phone, Mail, MapPin } from 'lucide-react'
+import { Plus, Phone, Mail, MapPin, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { formatDate, formatPhone } from '@/lib/utils/format'
 import type { Client, LeadStatus } from '@/types/database'
@@ -153,6 +154,18 @@ export default function CRMPage() {
       header: 'Ajouté',
       render: (c: Client) => <span className="text-xs">{formatDate(c.created_at)}</span>,
       sortable: true,
+    },
+    {
+      key: 'actions',
+      header: '',
+      render: (c: Client) => (
+        <Link href={`/admin/crm/${c.id}`}
+          className="inline-flex items-center gap-1 text-xs hover:underline"
+          style={{ color: 'rgb(var(--color-primary))' }}
+          onClick={e => e.stopPropagation()}>
+          <ExternalLink className="w-3 h-3" /> Voir
+        </Link>
+      ),
     },
   ]
 

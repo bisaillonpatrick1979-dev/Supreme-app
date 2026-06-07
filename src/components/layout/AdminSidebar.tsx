@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, FileText, HardHat, UserCog,
   BarChart3, Package, Boxes, LogOut, Sun, Moon,
-  ChevronRight, ClipboardList, Clock, Settings
+  ChevronRight, ClipboardList, Clock, Settings, Bell, Wrench
 } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import { useAuth } from '@/context/AuthContext'
@@ -25,8 +25,10 @@ const navItems = [
     href: '/admin/hr', icon: UserCog, label: 'Ressources Humaines',
     children: [
       { href: '/admin/hr/hours', icon: Clock, label: 'Heures' },
+      { href: '/admin/hr/notifications', icon: Bell, label: 'Notifications' },
     ],
   },
+  { href: '/admin/subcontractors', icon: Wrench, label: 'Sous-traitants' },
   { href: '/admin/accounting', icon: BarChart3, label: 'Comptabilité' },
   { href: '/admin/catalog', icon: Package, label: 'Catalogue' },
   { href: '/admin/inventory', icon: Boxes, label: 'Inventaire' },
