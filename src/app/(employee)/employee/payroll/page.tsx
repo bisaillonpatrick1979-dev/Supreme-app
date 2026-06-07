@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { DollarSign, Clock, TrendingDown, CheckCircle } from 'lucide-react'
 import { StatCard } from '@/components/ui/StatCard'
 import { calculateDeductions } from '@/lib/utils/payroll'
+import { PayrollPDFButton } from '@/components/employee/PayrollPDFButton'
 
 export default async function PayrollPage() {
   const supabase = await createClient()
@@ -69,13 +70,28 @@ export default async function PayrollPage() {
                 {employee.employee_type === 'salaried' ? 'Salarié' : `${formatCurrency(employee.hourly_rate ?? 0)}/h`}
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-sm" style={{ color: 'rgb(var(--color-text-muted))' }}>Taux horaire</p>
-              <p className="text-xl font-bold" style={{ color: 'rgb(var(--color-primary))' }}>
-                {employee.employee_type === 'salaried'
-                  ? formatCurrency((employee.salary_annual ?? 0) / 2080) + '/h eq.'
-                  : formatCurrency(employee.hourly_rate ?? 0) + '/h'}
-              </p>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm" style={{ color: 'rgb(var(--color-text-muted))' }}>Taux horaire</p>
+                <p className="text-xl font-bold" style={{ color: 'rgb(var(--color-primary))' }}>
+                  {employee.employee_type === 'salaried'
+                    ? formatCurrency((employee.salary_annual ?? 0) / 2080) + '/h eq.'
+                    : formatCurrency(employee.hourly_rate ?? 0) + '/h'}
+                </p>
+              </div>
+              <PayrollPDFButton data={{
+                employeeName: `${employee.first_name} ${employee.last_name}`,
+                employeeType: employee.employee_type,
+                period: new Date().toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' }),
+                hourlyRate: employee.hourly_rate,
+                monthHours,
+                monthOT: monthSessions.reduce((s, ws) => s + ws.hours_overtime, 0),
+                monthGross,
+                deductions,
+                monthNet,
+                ytdGross,
+                ytdHours,
+              }} />
             </div>
           </div>
         </div>

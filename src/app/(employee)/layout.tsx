@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { EmployeeSidebar } from '@/components/layout/EmployeeSidebar'
+import { EmployeeBottomNav } from '@/components/layout/EmployeeBottomNav'
 import { AuthProvider } from '@/context/AuthContext'
 
 export default async function EmployeeLayout({ children }: { children: React.ReactNode }) {
@@ -21,8 +22,9 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
     <AuthProvider>
       <div className="hm-layout">
         <EmployeeSidebar />
-        <main className="hm-main">{children}</main>
+        <main className="hm-main hm-main-employee">{children}</main>
       </div>
+      <EmployeeBottomNav />
     </AuthProvider>
   )
 }

@@ -673,3 +673,67 @@ body {
 .font-mono {
   font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 }
+
+/* ── MOBILE RESPONSIVE ─────────────────────────────────────── */
+
+/* Employee main gets bottom padding for bottom nav on mobile */
+.hm-main-employee .hm-content {
+  padding-bottom: calc(1.5rem + 64px + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  .hm-main-employee .hm-content {
+    padding-bottom: 1.5rem;
+  }
+}
+
+/* Hide sidebar on mobile for employee portal */
+@media (max-width: 767px) {
+  .hm-sidebar {
+    display: none;
+  }
+
+  .hm-layout {
+    height: 100dvh;
+  }
+
+  .hm-content {
+    padding: 1rem;
+  }
+}
+
+/* ── PRINT STYLES ──────────────────────────────────────────── */
+
+@media print {
+  .hm-sidebar,
+  header,
+  nav,
+  .print-hidden {
+    display: none !important;
+  }
+
+  .hm-main,
+  .hm-layout {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .hm-content {
+    padding: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  .hm-card {
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    break-inside: avoid;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
