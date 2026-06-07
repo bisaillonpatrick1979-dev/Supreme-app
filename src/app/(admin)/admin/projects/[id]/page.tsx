@@ -8,11 +8,18 @@ import { Button } from '@/components/ui/Button'
 import { ProjectStatusBadge, TaskStatusBadge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Select, Textarea } from '@/components/ui/Input'
-import { CheckCircle, Circle, Plus, MapPin, Calendar, DollarSign, AlertTriangle } from 'lucide-react'
+import { CheckCircle, Circle, Plus, MapPin, Calendar, DollarSign, AlertTriangle, Users, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { PhotoUpload } from '@/components/upload/PhotoUpload'
-import type { Project, Client, ProjectTask } from '@/types/database'
+import type { Project, Client, ProjectTask, Employee } from '@/types/database'
+
+interface ProjectEmployee {
+  id: string
+  employee_id: string
+  role: string | null
+  employee: Pick<Employee, 'id' | 'first_name' | 'last_name' | 'employee_type'>
+}
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -20,9 +27,19 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true)
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [taskForm, setTaskForm] = useState({ title: '', description: '', is_blocking: true })
+  const [projectEmployees, setProjectEmployees] = useState<ProjectEmployee[]>([])
+  const [allEmployees, setAllEmployees] = useState<Pick<Employee, 'id' | 'first_name' | 'last_name'>[]>([])
+  const [showEmployeeModal, setShowEmployeeModal] = useState(false)
+  const [selectedEmployee, setSelectedEmployee] = useState('')
+  const [employeeRole, setEmployeeRole] = useState('')
+  const [addingEmployee, setAddingEmployee] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => { loadProject() }, [id])
+  useEffect(() => {
+    loadProject()
+    loadProjectEmployees()
+    loadAllEmployees()
+  }, [id])
 
   const loadProject = async () => {
     const { data } = await supabase
@@ -32,6 +49,51 @@ export default function ProjectDetailPage() {
       .single()
     setProject(data as any)
     setLoading(false)
+  }
+
+  const loadProjectEmployees = async () => {
+    const { data } = await supabase
+      .from('project_employees')
+      .select('id, employee_id, role, employee:employees(id, first_name, last_name, employee_type)')
+      .eq('project_id', id)
+    setProjectEmployees((data ?? []) as unknown as ProjectEmployee[])
+  }
+
+  const loadAllEmployees = async () => {
+    const { data } = await supabase
+      .from('employees')
+      .select('id, first_name, last_name')
+      .eq('is_active', true)
+      .order('last_name')
+    setAllEmployees(data ?? [])
+  }
+
+  const addEmployee = async () => {
+    if (!selectedEmployee) return
+    setAddingEmployee(true)
+    const { error } = await supabase.from('project_employees').insert([{
+      project_id: id,
+      employee_id: selectedEmployee,
+      role: employeeRole || null,
+    }])
+    if (error) {
+      toast.error(error.code === '23505' ? 'Déjà assigné à ce chantier' : error.message)
+    } else {
+      toast.success('Employé assigné')
+      setShowEmployeeModal(false)
+      setSelectedEmployee('')
+      setEmployeeRole('')
+      loadProjectEmployees()
+    }
+    setAddingEmployee(false)
+  }
+
+  const removeEmployee = async (peId: string) => {
+    const { error } = await supabase.from('project_employees').delete().eq('id', peId)
+    if (!error) {
+      toast.success('Employé retiré du chantier')
+      loadProjectEmployees()
+    }
   }
 
   const toggleTask = async (task: ProjectTask) => {
@@ -222,6 +284,51 @@ export default function ProjectDetailPage() {
               <PhotoUpload projectId={id} />
             </div>
 
+            {/* Team */}
+            <div className="hm-card">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" style={{ color: 'rgb(var(--color-primary))' }} />
+                  <h3 className="font-semibold" style={{ color: 'rgb(var(--color-text))' }}>Équipe</h3>
+                </div>
+                <button
+                  onClick={() => setShowEmployeeModal(true)}
+                  className="p-1 rounded-lg transition-all"
+                  style={{ background: 'rgb(var(--color-primary-muted))', color: 'rgb(var(--color-primary))' }}
+                  title="Ajouter un employé"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="space-y-2">
+                {projectEmployees.length === 0 ? (
+                  <p className="text-sm text-center py-3" style={{ color: 'rgb(var(--color-text-muted))' }}>
+                    Aucun employé assigné
+                  </p>
+                ) : projectEmployees.map(pe => (
+                  <div key={pe.id} className="flex items-center justify-between p-2 rounded-lg"
+                    style={{ background: 'rgb(var(--color-bg-secondary))' }}>
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: 'rgb(var(--color-text))' }}>
+                        {pe.employee.first_name} {pe.employee.last_name}
+                      </p>
+                      {pe.role && (
+                        <p className="text-xs" style={{ color: 'rgb(var(--color-text-muted))' }}>{pe.role}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => removeEmployee(pe.id)}
+                      className="p-1 rounded transition-all"
+                      style={{ color: 'rgb(var(--color-danger))' }}
+                      title="Retirer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Client info */}
             <div className="hm-card">
               <h3 className="font-semibold mb-3" style={{ color: 'rgb(var(--color-text))' }}>Client</h3>
@@ -240,6 +347,38 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={showEmployeeModal}
+        onClose={() => { setShowEmployeeModal(false); setSelectedEmployee(''); setEmployeeRole('') }}
+        title="Assigner un employé"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowEmployeeModal(false)}>Annuler</Button>
+            <Button onClick={addEmployee} loading={addingEmployee} disabled={!selectedEmployee}>Assigner</Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <Select
+            label="Employé *"
+            value={selectedEmployee}
+            onChange={e => setSelectedEmployee(e.target.value)}
+            options={[
+              { value: '', label: '— Choisir un employé —' },
+              ...allEmployees
+                .filter(emp => !projectEmployees.some(pe => pe.employee_id === emp.id))
+                .map(emp => ({ value: emp.id, label: `${emp.first_name} ${emp.last_name}` })),
+            ]}
+          />
+          <Input
+            label="Rôle sur ce chantier (optionnel)"
+            value={employeeRole}
+            onChange={e => setEmployeeRole(e.target.value)}
+            placeholder="Ex: Chef d'équipe, Poseur, etc."
+          />
+        </div>
+      </Modal>
 
       <Modal
         isOpen={showTaskModal}

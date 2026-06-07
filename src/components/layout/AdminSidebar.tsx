@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, FileText, HardHat, UserCog,
   BarChart3, Package, Boxes, LogOut, Sun, Moon,
-  ChevronRight, ClipboardList, Clock
+  ChevronRight, ClipboardList, Clock, Settings
 } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import { useAuth } from '@/context/AuthContext'
@@ -31,6 +31,7 @@ const navItems = [
   { href: '/admin/catalog', icon: Package, label: 'Catalogue' },
   { href: '/admin/inventory', icon: Boxes, label: 'Inventaire' },
   { href: '/admin/stats', icon: BarChart3, label: 'Statistiques' },
+  { href: '/admin/settings', icon: Settings, label: 'Paramètres' },
 ]
 
 export function AdminSidebar() {
