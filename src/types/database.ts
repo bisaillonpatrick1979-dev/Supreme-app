@@ -322,6 +322,13 @@ export interface Notification {
   created_at: string
 }
 
+export interface CompanySetting {
+  id: string
+  key: string
+  value: string | null
+  updated_at: string
+}
+
 export interface STInvoice {
   id: string
   project_id: string

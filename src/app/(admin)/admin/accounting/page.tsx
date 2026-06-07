@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { AdminHeader } from '@/components/layout/AdminHeader'
 import { StatCard } from '@/components/ui/StatCard'
 import { InvoiceStatusBadge } from '@/components/ui/Badge'
+import { STInvoicePanel } from '@/components/accounting/STInvoicePanel'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { DollarSign, TrendingUp, TrendingDown, FileText } from 'lucide-react'
 
@@ -20,7 +21,7 @@ export default async function AccountingPage() {
   ] = await Promise.all([
     supabase.from('invoices').select('total, paid_at').eq('status', 'paid').gte('paid_at', yearStart),
     supabase.from('invoices').select('total').in('status', ['pending', 'approved', 'overdue']),
-    supabase.from('st_invoices').select('amount, status, subcontractor:subcontractors(company_name), project:projects(name)').in('status', ['pending', 'approved']),
+    supabase.from('st_invoices').select('id, invoice_number, amount, status, subcontractor:subcontractors(company_name), project:projects(name)').in('status', ['pending', 'approved']),
     supabase.from('invoices').select('*, client:clients(first_name,last_name,company_name)').order('created_at', { ascending: false }).limit(20),
   ])
 
@@ -69,32 +70,9 @@ export default async function AccountingPage() {
           </div>
         </div>
 
-        {/* ST invoices pending approval */}
+        {/* ST invoices pending approval — interactive client component */}
         {stInvoices && stInvoices.length > 0 && (
-          <div className="hm-card mb-6">
-            <h3 className="font-semibold mb-4" style={{ color: 'rgb(var(--color-text))' }}>
-              {"Factures sous-traitants en attente d'approbation"}
-            </h3>
-            <div className="space-y-2">
-              {stInvoices.map((inv: any) => (
-                <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg"
-                  style={{ background: 'rgb(var(--color-bg-secondary))' }}>
-                  <div>
-                    <p className="text-sm font-medium" style={{ color: 'rgb(var(--color-text))' }}>
-                      {inv.subcontractor?.company_name}
-                    </p>
-                    <p className="text-xs" style={{ color: 'rgb(var(--color-text-muted))' }}>{inv.project?.name}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold" style={{ color: 'rgb(var(--color-text))' }}>
-                      {formatCurrency(inv.amount)}
-                    </span>
-                    <InvoiceStatusBadge status={inv.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <STInvoicePanel initialInvoices={stInvoices as any} />
         )}
 
         {/* All invoices */}
